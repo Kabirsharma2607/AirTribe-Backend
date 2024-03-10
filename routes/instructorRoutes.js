@@ -97,21 +97,33 @@ router.put("/update-lead/:leadId", async (req, res) => {
     // Check if the status is accepted
     if (status === "Accepted") {
       // Get lead details
-      let maxId = await sql`
-    SELECT MAX(enrollment_id) AS max FROM Enrollments;
-  `;
-
+      let stid = await sql`
+        SELECT student_id AS stid
+FROM Students s
+JOIN Leads l ON l.linkedin_profile = s.linkedin_url;
+      `;
+      let maxLead = await sql`
+        SELECT MAX(enrollment_id) as max from enrollments;
+      `;
+      console.log(maxLead[0].max);
+      console.log(stid[0].stid);
+      let courseId = await sql`
+        Select course_id from leads where lead_id = ${leadId};
+      `;
+      console.log(courseId);
       // Insert into Enrollments table
       let enrollmentId = await sql`
-        INSERT INTO Enrollments (lead_id, course_id, student_id)
-        VALUES (${lead[0].course_id}, ${lead[0].lead_id});
+        INSERT INTO Enrollments 
+        VALUES (${maxLead[0].max + 1}, ${courseId[0].course_id}, ${
+        stid[0].stid
+      });
       `;
 
       // Update max_seats in Courses table
       let updateSeatsQuery = await sql`
         UPDATE Courses
         SET max_seats = max_seats - 1
-        WHERE course_id = ${lead[0].course_id};
+        WHERE course_id = ${courseId[0].course_id};
       `;
     }
 
