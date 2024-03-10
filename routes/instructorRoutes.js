@@ -36,15 +36,6 @@ router.post("/new-instructor", async (req, res) => {
   }
 });
 
-function generateRandomLeadId() {
-  // Assuming a range of lead IDs (adjust as needed)
-  const minId = 10000;
-  const maxId = 99999;
-
-  // Generate a random number within the range
-  return Math.floor(Math.random() * (maxId - minId + 1)) + minId;
-}
-
 // Endpoint to add a new lead
 router.post("/add-lead", async (req, res) => {
   try {

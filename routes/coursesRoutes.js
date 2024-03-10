@@ -102,7 +102,7 @@ router.delete("/delete-course/:courseId", async (req, res) => {
   }
 });
 
-router.post("/register-course", async (req, res) => {
+router.post("/register-student-for-course", async (req, res) => {
   try {
     // Get the number of available seats
     let seats = await sql`
