@@ -28,7 +28,7 @@ router.get("/get-all-courses", async (req, res) => {
 
 router.post("/add-new-course", async (req, res) => {
   try {
-    let maxId = await sql`SELECT MAX(instructor_id) as max FROM Courses;`;
+    let maxId = await sql`SELECT MAX(course_id) as max FROM Courses;`;
     maxId = maxId[0].max || 10000;
     let { instructorId, name, maxSeats, startDate } = req.body;
     let query = await sql`
@@ -119,7 +119,7 @@ router.post("/register-course", async (req, res) => {
     SELECT MAX(enrollment_id) AS max FROM Enrollments;
   `;
     maxId = maxId[0].max || 100;
-
+    // ADD CHECK FOR VALID STUDENT ID OR COURSE ID
     // Insert into Enrollments table
     let query = await sql`
     INSERT INTO Enrollments VALUES (${maxId + 1}, ${req.body.courseId}, ${

@@ -50,25 +50,35 @@ router.post("/add-lead", async (req, res) => {
   try {
     const { course_id, name, email, phone_number, linkedin_profile } = req.body;
 
+    console.log(req.body);
+    console.log(course_id, name, email, phone_number, linkedin_profile);
     // Generate a random lead ID
-    const lead_id = generateRandomLeadId();
+    let maxIdLead = await sql`
+    select MAX(lead_id) as max from leads;
+    `;
+    maxIdLead = maxIdLead[0].max || 1000;
+    console.log(maxIdLead);
 
     // Insert new lead into Leads table
-    const query = await sql`
-      INSERT INTO Leads (lead_id, course_id, name, email, phone_number, linkedin_profile)
-      VALUES (${lead_id}, ${course_id}, ${name}, ${email}, ${phone_number}, ${linkedin_profile});
+    let query = await sql`
+      INSERT INTO Leads 
+      VALUES (${
+        maxIdLead + 1
+      }, ${course_id}, ${name}, ${email}, ${phone_number}, ${linkedin_profile});
     `;
 
     let maxId = await sql`SELECT MAX(student_id) as max FROM Students;`;
     maxId = maxId[0].max || 10000000;
-
+    console.log(maxId);
     query = await sql`
     Insert into Students values(${maxId + 1},  ${name}, ${linkedin_profile})
     `;
 
-    res.status(200).json({ message: "Lead added successfully" });
+    res
+      .status(200)
+      .json({ message: "Lead added successfully", lead_id: maxIdLead + 1 });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -84,21 +94,21 @@ router.put("/update-lead/:leadId", async (req, res) => {
       WHERE lead_id = ${leadId};
     `;
 
-    // Check if the status is confirmed
-    if (status === "Confirmed") {
+    // Check if the status is accepted
+    if (status === "Accepted") {
       // Get lead details
-      const lead = await sql`
-        SELECT * FROM Leads WHERE lead_id = ${leadId};
-      `;
+      let maxId = await sql`
+    SELECT MAX(enrollment_id) AS max FROM Enrollments;
+  `;
 
       // Insert into Enrollments table
-      const enrollmentId = await sql`
-        INSERT INTO Enrollments (course_id, student_id)
+      let enrollmentId = await sql`
+        INSERT INTO Enrollments (lead_id, course_id, student_id)
         VALUES (${lead[0].course_id}, ${lead[0].lead_id});
       `;
 
       // Update max_seats in Courses table
-      const updateSeatsQuery = await sql`
+      let updateSeatsQuery = await sql`
         UPDATE Courses
         SET max_seats = max_seats - 1
         WHERE course_id = ${lead[0].course_id};
